@@ -91,8 +91,18 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "version": 2,
+            "browserTarget": "password-manager:build:production"
+          }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "c12d8ee2-f09f-4c2f-a8ab-a5ddfc3e0fe7"
   }
 }
