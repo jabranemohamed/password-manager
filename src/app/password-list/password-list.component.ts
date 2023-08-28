@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
 import {PasswordManagerService} from "../password-manager.service";
 import {Observable} from "rxjs";
+import {AES, enc} from 'crypto-js';
 
 @Component({
   selector: 'app-password-list',
@@ -14,7 +15,7 @@ export class PasswordListComponent {
   siteName!: string;
   siteURL !: string;
   siteImgURL !: string;
-  passwordList !: Observable<Array<any>>;
+  passwordList !: Array<any>;
 
   email !: string;
   username  !: string;
@@ -45,10 +46,11 @@ export class PasswordListComponent {
     this.username = '';
     this.passwordId = '';
     this.formState = '';
-    this.password='';
+    this.password = '';
   }
 
   onSubmit(value: any) {
+    value.password = this.encrypPassword(value.password);
     if (this.formState == 'Add new') {
       this.passwordManagerService.addPassword(value, this.siteId)
         .then(() => {
@@ -71,7 +73,9 @@ export class PasswordListComponent {
   }
 
   loadPasswords() {
-    this.passwordList = this.passwordManagerService.loadPassword(this.siteId)
+    this.passwordManagerService.loadPassword(this.siteId).subscribe((val) => {
+      this.passwordList = val;
+    })
   }
 
   editPassword(email: string, username: string, password: string, id: string) {
@@ -92,5 +96,22 @@ export class PasswordListComponent {
       .catch(() => {
         this.showAlert('Exception  Deleted')
       })
+  }
+
+  encrypPassword(password: string) {
+    const secretKey = 'Qf/bHvw9HSDXVbu90HQKt3uTtK9nL+0boCTEVo+PMAn97AjGrztU3TjOGCaNX//i\n';
+    const encryptedPassword = AES.encrypt(password, secretKey).toString();
+    return encryptedPassword;
+  }
+
+  decryptPassword(password: string) {
+    const secretKey = 'Qf/bHvw9HSDXVbu90HQKt3uTtK9nL+0boCTEVo+PMAn97AjGrztU3TjOGCaNX//i\n';
+    const decryptedPassword = AES.decrypt(password, secretKey).toString(enc.Utf8);
+    return decryptedPassword;
+  }
+
+  onDecryptPassword(password: string, i: number) {
+    const decPassword = this.decryptPassword(password)
+    this.passwordList[i].password = decPassword;
   }
 }
