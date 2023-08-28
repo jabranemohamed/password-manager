@@ -16,9 +16,22 @@ export class PasswordListComponent {
   siteImgURL !: string;
   passwordList !: Observable<Array<any>>;
 
+  email !: string;
+  username  !: string;
+  password  !: string;
+  passwordId  !: string;
+  formState: string = 'Add new'
+
+  isSuccess: boolean = false;
+  successMessage !: string;
+
+  showAlert(message: string) {
+    this.isSuccess = true;
+    this.successMessage = message;
+  }
+
   constructor(private route: ActivatedRoute, private passwordManagerService: PasswordManagerService) {
     this.route.queryParams.subscribe((val: any) => {
-      console.log("val.siteImgURL", val)
       this.siteId = val.id;
       this.siteName = val.siteName;
       this.siteURL = val.siteURL;
@@ -27,17 +40,57 @@ export class PasswordListComponent {
     this.loadPasswords();
   }
 
-  onSubmit(value: any) {
-    this.passwordManagerService.addPassword(value,this.siteId)
-      .then(() => {
-       console.log("khjgfqsg ")
-      })
-      .catch(() => {
-
-      })
+  resetForm() {
+    this.email = '';
+    this.username = '';
+    this.passwordId = '';
+    this.formState = '';
+    this.password='';
   }
 
-  loadPasswords(){
+  onSubmit(value: any) {
+    if (this.formState == 'Add new') {
+      this.passwordManagerService.addPassword(value, this.siteId)
+        .then(() => {
+          this.showAlert("Password Save Successffuly ");
+          this.resetForm();
+        })
+        .catch(() => {
+
+        })
+    } else if (this.formState == 'Edit') {
+      this.passwordManagerService.updatePassword(this.siteId, this.passwordId, value)
+        .then(() => {
+          this.showAlert("Password updated Successffuly ");
+          this.resetForm();
+        })
+        .catch(() => {
+
+        })
+    }
+  }
+
+  loadPasswords() {
     this.passwordList = this.passwordManagerService.loadPassword(this.siteId)
+  }
+
+  editPassword(email: string, username: string, password: string, id: string) {
+    this.email = email;
+    this.username = username;
+    this.password = password;
+    this.passwordId = id;
+    this.formState = 'Edit'
+
+  }
+
+  deletePassword(password: string) {
+    this.passwordManagerService.deletePassword(this.siteId, password)
+      .then(() => {
+        this.showAlert('Data Deleted');
+        this.resetForm();
+      })
+      .catch(() => {
+        this.showAlert('Exception  Deleted')
+      })
   }
 }
